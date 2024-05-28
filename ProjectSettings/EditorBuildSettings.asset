@@ -14,7 +14,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/scenes/_levels/level_Island.unity
     guid: e49366a21c3d84388bfb33016c0e77e2
-  - enabled: 1
+  - enabled: 0
     path: Assets/scenes/Testing/benchmark_island-static.unity
     guid: bf8529d52d0dac843b94245ecf955d4a
   m_configObjects:
