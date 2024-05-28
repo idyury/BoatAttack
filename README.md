@@ -6,6 +6,8 @@ The main purpose is to provide compatibility with Linux Unity and add
 more parameteters and logs in order to get more automative behaviour
 for Android devices.
 
+Target editor Linux for Android, 2022.3.28f1
+
 # Boat Attack
 ###### Demo Project using the Universal RP from Unity3D
 
