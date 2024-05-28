@@ -50,7 +50,7 @@ MonoBehaviour:
   variableResolution: 0
   axisBias: 0.5
   minScale: 0.5
-  targetFramerate: 1
+  targetFramerate: 60
   speedFormat: 0
   loadingScreen:
     m_AssetGUID: 179a2376fe443449d9046bc913164c8b
@@ -93,7 +93,7 @@ MonoBehaviour:
       livery:
         primaryColor: {r: 0.8773585, g: 0.09518514, b: 0.09518514, a: 0}
         trimColor: {r: 0.8679245, g: 0.8679245, b: 0.8679245, a: 0}
-      human: 1
+      human: 0
     - boatName: Jonas
       boatPrefab:
         m_AssetGUID: 70d78230a0527e74dabc4f14906eef98
