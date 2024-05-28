@@ -3,7 +3,7 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 
 [ExecuteAlways]
 public class CloudRenderer : MonoBehaviour
@@ -62,11 +62,11 @@ public class CloudRenderer : MonoBehaviour
             var pos = particle.position * SkyboxSystem.SkyboxScale + camPos * (1 - SkyboxSystem.SkyboxScale);
 
             var q = Quaternion.LookRotation(particle.position - camPos);
-            Random.InitState((int)particle.randomSeed);
-            var mesh = cloudMeshes[Random.Range(0, cloudMeshes.Length)];
+            Random random = new Random((int)particle.randomSeed);
+            var mesh = cloudMeshes[random.Next(0, cloudMeshes.Length)];
 
             scale = particle.startSize3D;
-            scale.x *= Random.value > 0.5f ? 1f : -1f;
+            scale.x *= random.NextDouble() > 0.5f ? 1f : -1f;
             
             mpbs[index].SetVector("_BA_CloudData", new Vector4(scale.x, 0f, 0f, particle.GetCurrentColor(ps).a / 255f));
             

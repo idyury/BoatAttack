@@ -350,7 +350,6 @@ namespace BoatAttack
             get
             {
                 GenerateColors();
-                Random.InitState(SeedNow+Random.Range(0,1000));
                 return ColorPalette[Random.Range(0, ColorPalette.Length)];
             }
         }

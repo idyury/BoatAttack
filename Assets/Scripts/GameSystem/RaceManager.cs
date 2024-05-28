@@ -129,6 +129,7 @@ namespace BoatAttack
 
         public static IEnumerator SetupRace()
         {
+            Random.InitState(0);
             if(RaceData == null) RaceData = Instance.demoRaceData; // make sure we have the data, otherwise default to demo data
             while (WaypointGroup.Instance == null) // TODO need to re-write whole game loading/race setup logic as it is dirty
             {
@@ -369,7 +370,6 @@ namespace BoatAttack
             for (var i = 0; i < count; i++)
             {
                 var boat = new BoatData();
-                Random.InitState(ConstantData.SeedNow+i);
                 boat.boatName = ConstantData.AiNames[Random.Range(0, ConstantData.AiNames.Length)];
                 BoatLivery livery = new BoatLivery
                 {
