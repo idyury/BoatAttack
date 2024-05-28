@@ -1,5 +1,11 @@
 **_Note:This repository uses GitLFS, to use this repo you need to pull via Git and make sure GitLFS is installed locally_**
 
+# Boat Attack fork
+This is fork from https://github.com/Unity-Technologies/BoatAttack
+The main purpose is to provide compatibility with Linux Unity and add
+more parameteters and logs in order to get more automative behaviour
+for Android devices.
+
 # Boat Attack
 ###### Demo Project using the Universal RP from Unity3D
 
