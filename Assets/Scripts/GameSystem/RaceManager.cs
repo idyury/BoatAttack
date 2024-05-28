@@ -2,11 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.SceneManagement;
 using BoatAttack.UI;
+using UnityEngine.UI;
 using UnityEngine.Playables;
 using UnityEngine.Rendering.Universal;
 using Random = UnityEngine.Random;
@@ -56,6 +58,8 @@ namespace BoatAttack
 
         public static RaceManager Instance;
         [NonSerialized] public static bool RaceStarted;
+        [NonSerialized] public static bool LevelLoaded;
+        [NonSerialized] public static float LevelLoadedTime = 0.0F;
         [NonSerialized] public static Race RaceData;
         public Race demoRaceData = new Race();
         [NonSerialized] public static float RaceTime;
@@ -66,6 +70,15 @@ namespace BoatAttack
         [Header("Assets")] public AssetReference[] boats;
         public AssetReference raceUiPrefab;
         public AssetReference raceUiTouchPrefab;
+
+
+        int frameCount = 0;
+        int frameCountTotal = 0;
+        double dt = 0.0;
+        double dtTotal = 0.0;
+        double updateDt = 0.5;
+        float lastUpdateTime = 0.0F;
+
         
         public static void BoatFinished(int player)
         {
@@ -102,6 +115,7 @@ namespace BoatAttack
         private void Reset()
         {
             RaceStarted = false;
+            LevelLoaded = false;
             RaceData.boats.Clear();
             RaceTime = 0f;
             _boatTimes.Clear();
@@ -192,6 +206,9 @@ namespace BoatAttack
         /// <returns></returns>
         private static IEnumerator BeginRace()
         {
+            LevelLoaded = true;
+            LevelLoadedTime = Time.realtimeSinceStartup;
+
             var introCams = GameObject.FindWithTag("introCameras");
             introCams.TryGetComponent<PlayableDirector>(out var introDirector);
 
@@ -237,9 +254,43 @@ namespace BoatAttack
             }
         }
         
-        private void LateUpdate()
-        {
-            if (!RaceStarted) return;
+        private void UpdateFPS() {
+            float timeNow = Time.realtimeSinceStartup;
+
+            if (lastUpdateTime == 0.0F) {
+                lastUpdateTime = LevelLoadedTime;
+            }
+
+            frameCount++;
+            frameCountTotal++;
+            dt = timeNow - lastUpdateTime;
+            if (dt < updateDt) {
+                return;
+            }
+
+            var fps = frameCount / dt;
+            frameCount = 0;
+            lastUpdateTime = timeNow;
+
+            dtTotal = timeNow - LevelLoadedTime;
+            var fpsTotal = frameCountTotal / dtTotal;
+
+            var text = $"FPS: {fps.ToString("0.0")}. Ave: {fpsTotal.ToString("0.0")}. Frames: {frameCountTotal}. Time: {dtTotal.ToString("0.0")}";
+            Debug.Log(text);
+            TextMeshProUGUI fpsText = GameObject.Find("FPSCounter").GetComponent<TextMeshProUGUI>();
+            if (fpsText) {
+                fpsText.text = text;
+            }
+        }
+
+        private void LateUpdate() {
+            if (LevelLoaded) {
+                UpdateFPS();
+            }
+
+            if (!RaceStarted) {
+                return;
+            }
 
             int finished = RaceData.boatCount;
             for (var i = 0; i < RaceData.boats.Count; i++)
