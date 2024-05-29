@@ -209,6 +209,7 @@ namespace BoatAttack
         {
             LevelLoaded = true;
             LevelLoadedTime = Time.realtimeSinceStartup;
+            Debug.Log("Level loaded");
 
             var introCams = GameObject.FindWithTag("introCameras");
             introCams.TryGetComponent<PlayableDirector>(out var introDirector);
