@@ -50,7 +50,7 @@ MonoBehaviour:
   variableResolution: 0
   axisBias: 0.5
   minScale: 0.5
-  targetFramerate: 60
+  targetFramerate: 120
   speedFormat: 0
   loadingScreen:
     m_AssetGUID: 179a2376fe443449d9046bc913164c8b
