@@ -88,6 +88,7 @@ namespace UnityEngine.Rendering.Universal
             if (dest == null) return;
 
             dest.CopyFrom(src);
+            dest.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
             dest.useOcclusionCulling = false;
             if (dest.gameObject.TryGetComponent(out UniversalAdditionalCameraData camData))
             {
