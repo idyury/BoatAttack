@@ -431,22 +431,26 @@ namespace BoatAttack
 
         private static void SetupMultiCamera(int player, int row, int col, int rowCnt, int colCnt)
         {
-            AppSettings.MainCamera.enabled = false;
-
-            GameObject cameraObject = new GameObject("Extra Camera");
-            Camera camera = cameraObject.AddComponent<Camera>();
-            camera.CopyFrom(AppSettings.MainCamera);
             float w = 1.0f / colCnt;
             float h = 1.0f / rowCnt;
+            Camera camera = null;
+            if (player == 0) {
+                camera = AppSettings.MainCamera;
+            } else {
+                GameObject cameraObject = new GameObject("Extra Camera");
+                camera = cameraObject.AddComponent<Camera>();
+                camera.CopyFrom(AppSettings.MainCamera);
+
+                CinemachineBrain brain = cameraObject.AddComponent<CinemachineBrain>();
+                brain.m_UpdateMethod = CinemachineBrain.UpdateMethod.LateUpdate;
+                brain.m_BlendUpdateMethod = CinemachineBrain.BrainUpdateMethod.LateUpdate;
+                brain.m_DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.Cut, 0f);
+            }
             camera.rect = new Rect(w * col, h * row, w, h);
             camera.cullingMask |= 1 << LayerMask.NameToLayer($"Player{player + 1}");
             camera.allowDynamicResolution = false;
+            camera.allowHDR = true;
             camera.enabled = true;
-
-            CinemachineBrain brain = cameraObject.AddComponent<CinemachineBrain>();
-            brain.m_UpdateMethod = CinemachineBrain.UpdateMethod.LateUpdate;
-            brain.m_BlendUpdateMethod = CinemachineBrain.BrainUpdateMethod.LateUpdate;
-            brain.m_DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.Cut, 0f);
         }
         
         public static int GetLapCount()
