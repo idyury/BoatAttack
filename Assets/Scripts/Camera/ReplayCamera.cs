@@ -10,6 +10,8 @@ namespace BoatAttack
         public static ReplayCamera Instance;
         private static bool _spectatorEnabled;
         private static BoatData _focusedBoat;
+        public static bool RaceDone = false;
+
         private Transform _focusPoint;
         public CinemachineClearShot clearShot;
         private ICinemachineCamera currentCam;
@@ -34,7 +36,7 @@ namespace BoatAttack
                 clearShot.ResetRandomization();
             }
 
-            if (currentCam != clearShot.LiveChild)
+            if (currentCam != clearShot.LiveChild && RaceDone)
             {
                 if (Random.value >= 0.5f) { SetRandomTarget(); }
                 currentCam = clearShot.LiveChild;

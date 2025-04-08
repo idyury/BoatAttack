@@ -12,6 +12,7 @@ using UnityEngine.UI;
 using UnityEngine.Playables;
 using UnityEngine.Rendering.Universal;
 using Random = UnityEngine.Random;
+using Cinemachine;
 
 namespace BoatAttack
 {
@@ -138,11 +139,26 @@ namespace BoatAttack
             WaypointGroup.Instance.Setup(RaceData.reversed); // setup waypoints
             yield return Instance.StartCoroutine(CreateBoats()); // spawn boats;
 
+            bool hqmode = false;
+            string[] args = System.Environment.GetCommandLineArgs();
+            foreach (string arg in args) {
+                if (arg.Equals("--hq")) {
+                    hqmode = true;
+                }
+            }
+
             switch (RaceData.game)
             {
                 case GameType.Singleplayer:
                     yield return Instance.StartCoroutine(CreatePlayerUi(0));
-                    SetupCamera(0); // setup camera for player 1
+                    if (AppSettings.HQmode) {
+                        SetupMultiCamera(0, 0, 0, 2, 2);
+                        SetupMultiCamera(1, 1, 0, 2, 2);
+                        SetupMultiCamera(2, 0, 1, 2, 2);
+                        SetupMultiCamera(3, 1, 1, 2, 2);
+                    } else {
+                        SetupCamera(0); // setup camera for player 1
+                    }
                     break;
                 case GameType.LocalMultiplayer:
                     break;
@@ -244,6 +260,7 @@ namespace BoatAttack
                     break;
                 case GameType.Singleplayer:
                     SetupCamera(0, true);
+                    ReplayCamera.RaceDone = true;
                     break;
                 case GameType.LocalMultiplayer:
                     break;
@@ -410,6 +427,26 @@ namespace BoatAttack
                 AppSettings.MainCamera.cullingMask &= ~(1 << LayerMask.NameToLayer($"Player{player + 1}")); // TODO - this needs more work for when adding splitscreen.
             else
                 AppSettings.MainCamera.cullingMask |= 1 << LayerMask.NameToLayer($"Player{player + 1}"); // TODO - this needs more work for when adding splitscreen.
+        }
+
+        private static void SetupMultiCamera(int player, int row, int col, int rowCnt, int colCnt)
+        {
+            AppSettings.MainCamera.enabled = false;
+
+            GameObject cameraObject = new GameObject("Extra Camera");
+            Camera camera = cameraObject.AddComponent<Camera>();
+            camera.CopyFrom(AppSettings.MainCamera);
+            float w = 1.0f / colCnt;
+            float h = 1.0f / rowCnt;
+            camera.rect = new Rect(w * col, h * row, w, h);
+            camera.cullingMask |= 1 << LayerMask.NameToLayer($"Player{player + 1}");
+            camera.allowDynamicResolution = false;
+            camera.enabled = true;
+
+            CinemachineBrain brain = cameraObject.AddComponent<CinemachineBrain>();
+            brain.m_UpdateMethod = CinemachineBrain.UpdateMethod.LateUpdate;
+            brain.m_BlendUpdateMethod = CinemachineBrain.BrainUpdateMethod.LateUpdate;
+            brain.m_DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.Cut, 0f);
         }
         
         public static int GetLapCount()

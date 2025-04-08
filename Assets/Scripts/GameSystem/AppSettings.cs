@@ -59,6 +59,8 @@ namespace BoatAttack
         public GameObject consoleCanvas;
         public static GameObject ConsoleCanvas;
 
+        public static bool HQmode = false;
+
         // Use this for initialization
         private void Awake()
         {
@@ -66,6 +68,15 @@ namespace BoatAttack
                 Debug.Log("AppManager initializing");
             Initialize();
             CmdArgs();
+
+            if (AppSettings.HQmode) {
+                Physics.defaultSolverIterations = 18;
+                Physics.defaultSolverVelocityIterations = 4;
+            } else {
+                Physics.defaultSolverIterations = 6;
+                Physics.defaultSolverVelocityIterations = 1;
+            }
+
             SetRenderScale();
             SceneManager.sceneLoaded += LevelWasLoaded;
         }
@@ -281,6 +292,9 @@ namespace BoatAttack
 
                 switch (arg[0])
                 {
+                    case "-quality":
+                        HQmode = arg[1].Equals("hq");
+                        break;
                     case "-loadlevel":
                         LoadScene(arg[1]);
                         break;
