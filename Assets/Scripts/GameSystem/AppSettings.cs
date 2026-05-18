@@ -7,6 +7,8 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
+using UnityEngine.InputSystem;
+
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif
@@ -43,7 +45,6 @@ namespace BoatAttack
         public static Camera MainCamera;
         [Header("Resolution Settings")]
         public RenderRes maxRenderSize = RenderRes._720p;
-        public bool variableResolution;
         [Range(0f, 1f)]
         public float axisBias = 0.5f;
         public float minScale = 0.5f;
@@ -59,7 +60,9 @@ namespace BoatAttack
         public GameObject consoleCanvas;
         public static GameObject ConsoleCanvas;
 
-        public static bool HQmode = false;
+        public static bool HQmode = true;
+
+        private int lastWindowHeight = 0;
 
         // Use this for initialization
         private void Awake()
@@ -77,10 +80,18 @@ namespace BoatAttack
                 Physics.defaultSolverVelocityIterations = 1;
             }
 
-            SetRenderScale();
             SceneManager.sceneLoaded += LevelWasLoaded;
+
+            // Disable internal VSync (Android enforces its own hardware VSync)
+            QualitySettings.vSyncCount = 0;
+#if UNITY_ANDROID
+        Screen.SetResolution(1920, 1080, true);
+#elif UNITY_STANDALONE_WIN
+            //Screen.SetResolution(1920, 1080, FullScreenMode.ExclusiveFullScreen);
+            Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
+#endif
         }
-        
+
         private void Initialize()
         {
             Instance = this;
@@ -123,61 +134,35 @@ namespace BoatAttack
             if(loadingScreenObject) loadingScreen?.ReleaseInstance(loadingScreenObject);
         }
 
-        private void SetRenderScale()
-        {
-            var res = maxRenderSize switch
-            {
-                RenderRes._720p => 1280f,
-                RenderRes._1080p => 1920f,
-                RenderRes._1440p => 2560f,
-                _ => Screen.width
-            };
-            var renderScale = Mathf.Clamp(res / Screen.width, 0.1f, 1.0f);
-
-            if(Debug.isDebugBuild)
-                Debug.Log($"Settings render scale to {renderScale * 100}% based on {maxRenderSize.ToString()}");
-
-            maxScale = renderScale;
-#if !UNITY_EDITOR
-            UniversalRenderPipeline.asset.renderScale = renderScale;
-#endif
-        }
-
         private void Update()
         {
 #if !UNITY_EDITOR
             Utility.CheckQualityLevel(); //TODO - hoping to remove one day when we have a quality level callback
 #endif
 
-            if (!MainCamera) return;
-
-            if (variableResolution)
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                MainCamera.allowDynamicResolution = true;
-
-                var offset = 0f;
-                var currentFrametime = Time.deltaTime;
-                const float rate = 0.1f;
-
-                offset = targetFramerate switch
-                {
-                    Framerate._30 => currentFrametime > (1000f / 30f) ? -rate : rate,
-                    Framerate._60 => currentFrametime > (1000f / 60f) ? -rate : rate,
-                    Framerate._120 => currentFrametime > (1000f / 120f) ? -rate : rate,
-                    _ => offset
-                };
-
-                currentDynamicScale = Mathf.Clamp(currentDynamicScale + offset, minScale, 1f);
-
-                var offsetVec = new Vector2(Mathf.Lerp(1, currentDynamicScale, Mathf.Clamp01((1 - axisBias) * 2f)),
-                    Mathf.Lerp(1, currentDynamicScale, Mathf.Clamp01(axisBias * 2f)));
-
-                ScalableBufferManager.ResizeBuffers(offsetVec.x, offsetVec.y);
+                Application.Quit();
             }
-            else
+
+            // Only recalculate if the player resizes the window
+            if (Screen.height != lastWindowHeight)
             {
-                MainCamera.allowDynamicResolution = false;
+                lastWindowHeight = Screen.height;
+                EnforceFixedResolution();
             }
+        }
+        private void EnforceFixedResolution()
+        {
+            if (UniversalRenderPipeline.asset == null) return;
+
+            // Calculate the ratio needed to make the render buffer exactly 1080p.
+            // Example: If window is 4K (2160p), scale becomes 1080 / 2160 = 0.5f.
+            float targetHeight = 1080f;
+            float scaleFactor = targetHeight / (float)Screen.height;
+
+            // Apply scale directly to the pipeline asset
+            UniversalRenderPipeline.asset.renderScale = scaleFactor;
         }
 
         public void ToggleSRPBatcher(bool enabled)

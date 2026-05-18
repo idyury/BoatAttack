@@ -80,7 +80,14 @@ namespace BoatAttack
         double updateDt = 0.5;
         float lastUpdateTime = 0.0F;
 
-        
+        string graphicsDeviceType;
+
+        // Array to hold the frame timing data. We only need the latest frame.
+        private FrameTiming[] frameTimings = new FrameTiming[1];
+
+        private double cpuFrameTime;
+        private double gpuFrameTime;
+
         public static void BoatFinished(int player)
         {
             switch (RaceData.game)
@@ -111,6 +118,7 @@ namespace BoatAttack
             if(Debug.isDebugBuild)
                 Debug.Log("RaceManager Loaded");
             Instance = this;
+            graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString();
         }
 
         private void Reset()
@@ -138,14 +146,6 @@ namespace BoatAttack
             }
             WaypointGroup.Instance.Setup(RaceData.reversed); // setup waypoints
             yield return Instance.StartCoroutine(CreateBoats()); // spawn boats;
-
-            bool hqmode = false;
-            string[] args = System.Environment.GetCommandLineArgs();
-            foreach (string arg in args) {
-                if (arg.Equals("--hq")) {
-                    hqmode = true;
-                }
-            }
 
             switch (RaceData.game)
             {
@@ -293,12 +293,33 @@ namespace BoatAttack
 
             dtTotal = timeNow - LevelLoadedTime;
             var fpsTotal = frameCountTotal / dtTotal;
+            var actualWidth = (int)(Screen.width * UniversalRenderPipeline.asset.renderScale);
+            var actualHeight = (int)(Screen.height * UniversalRenderPipeline.asset.renderScale);
 
-            var text = $"FPS: {fps.ToString("0.0")}. Ave: {fpsTotal.ToString("0.0")}. Frames: {frameCountTotal}. Time: {dtTotal.ToString("0.0")}";
-            Debug.Log(text);
+
+            var displayText = $"FPS: {fps.ToString("0.0")}. Avg: {fpsTotal.ToString("0.0")}. Frames: {frameCountTotal}. Time: {dtTotal.ToString("0.0")}\n"
+                + string.Format("CPU Time: {0:0.00}ms GPU Time: {1:0.00}ms\n", cpuFrameTime, gpuFrameTime)
+                + $"Res: {actualWidth}x{actualHeight}@{Screen.currentResolution.refreshRateRatio}Hz API: {graphicsDeviceType}";
+            Debug.Log($"fps:{fps.ToString("0.0")},avgFps:{fpsTotal.ToString("0.0")},frames:{frameCountTotal},time:{dtTotal.ToString("0.0")},cpu:{cpuFrameTime.ToString("0.0")},gpu:{gpuFrameTime.ToString("0.0")},res:{actualWidth}x{actualHeight}@{Screen.currentResolution.refreshRateRatio}");
             TextMeshProUGUI fpsText = GameObject.Find("FPSCounter").GetComponent<TextMeshProUGUI>();
             if (fpsText) {
-                fpsText.text = text;
+                fpsText.text = displayText;
+            }
+        }
+
+        private void Update()
+        {
+            // 1. Tell Unity to capture the timing data for this frame
+            FrameTimingManager.CaptureFrameTimings();
+
+            // 2. Retrieve the data into our array
+            uint framesReturned = FrameTimingManager.GetLatestTimings((uint)frameTimings.Length, frameTimings);
+
+            // 3. Extract the CPU and GPU times (returned in milliseconds)
+            if (framesReturned > 0)
+            {
+                cpuFrameTime = frameTimings[0].cpuFrameTime;
+                gpuFrameTime = frameTimings[0].gpuFrameTime;
             }
         }
 
