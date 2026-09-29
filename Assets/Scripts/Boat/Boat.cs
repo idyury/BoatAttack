@@ -105,7 +105,7 @@ namespace BoatAttack
         {
             if (!RaceManager.RaceStarted)
             {
-                if(WaypointGroup.Instance) AlignBoatWithStartingLine();
+                if(WaypointGroup.Instance && _playerIndex != -1) AlignBoatWithStartingLine();
             }
         }
 
@@ -120,7 +120,7 @@ namespace BoatAttack
 
             if (dist > 3.0) {
                 Debug.Log($"Fix position for player {_playerIndex}: {transform.position} to {targetPosition}. Error: {dist.ToString("0.0")}");
-                engine.RB.velocity = Vector3.zero;
+                engine.RB.linearVelocity = Vector3.zero;
                 engine.RB.angularVelocity = Vector3.zero;
                 engine.RB.position = targetPosition;
                 engine.RB.rotation = target.rotation;
@@ -219,7 +219,7 @@ namespace BoatAttack
                 var resetMatrix = WaypointGroup.Instance.GetClosestPointOnWaypoint(transform.position);
                 var resetPoint = resetMatrix.GetColumn(3);
                 resetPoint.y = _spawnPosition.GetColumn(3).y;
-                engine.RB.velocity = Vector3.zero;
+                engine.RB.linearVelocity = Vector3.zero;
                 engine.RB.angularVelocity = Vector3.zero;
                 engine.RB.position = resetPoint;
                 engine.RB.rotation = resetMatrix.rotation;

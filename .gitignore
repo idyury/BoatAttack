@@ -3,7 +3,17 @@
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
+/[Uu]ser[Ss]ettings/
+/.utmp/
 /Assets/AssetStoreTools*
+
+# Unity build debug information and backups
+/*_BurstDebugInformation_DoNotShip/
+/*_BackUpThisFolder_ButDontShipItWithYourGame/
+
+# Unity editor recovery scenes
+/Assets/_Recovery/
+/Assets/_Recovery.meta
 
 # Visual Studio 2015 cache directory
 /.vs/
@@ -14,6 +24,7 @@ ExportedObj/
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user
@@ -31,7 +42,14 @@ sysinfo.txt
 
 # Builds
 *.apk
+*.aab
 *.unitypackage
+/BoatAttack_source.zip
+
+# Generated Addressables linker configuration
+/Assets/AddressableAssetsData/link.xml
+/Assets/AddressableAssetsData/link.xml.meta
+
 Assets/_Ignore
 _Ignore.meta
 .idea
@@ -42,6 +60,7 @@ Recordings
 Packages/com.unity.*
 MemoryCaptures
 Assets/BuildReports
+/Assets/BuildReports.meta
 SerializedBuildInfo
 SwitchIL2CPP*
 Assets/ActualImages*

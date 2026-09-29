@@ -13,6 +13,7 @@ using UnityEngine.Playables;
 using UnityEngine.Rendering.Universal;
 using Random = UnityEngine.Random;
 using Cinemachine;
+using Unity.Profiling;
 
 namespace BoatAttack
 {
@@ -88,6 +89,8 @@ namespace BoatAttack
         private double cpuFrameTime;
         private double gpuFrameTime;
 
+        private ProfilerRecorder trianglesRecorder;
+
         public static void BoatFinished(int player)
         {
             switch (RaceData.game)
@@ -119,6 +122,16 @@ namespace BoatAttack
                 Debug.Log("RaceManager Loaded");
             Instance = this;
             graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString();
+        }
+
+        private void OnEnable()
+        {
+            trianglesRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Triangles Count");
+        }
+
+        private void OnDisable()
+        {
+            trianglesRecorder.Dispose();
         }
 
         private void Reset()
@@ -225,7 +238,7 @@ namespace BoatAttack
         {
             LevelLoaded = true;
             LevelLoadedTime = Time.realtimeSinceStartup;
-            Debug.Log("Level loaded");
+            Debug.Log("Level loaded, timestamp: " + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
 
             var introCams = GameObject.FindWithTag("introCameras");
             introCams.TryGetComponent<PlayableDirector>(out var introDirector);
@@ -299,8 +312,9 @@ namespace BoatAttack
 
             var displayText = $"FPS: {fps.ToString("0.0")}. Avg: {fpsTotal.ToString("0.0")}. Frames: {frameCountTotal}. Time: {dtTotal.ToString("0.0")}\n"
                 + string.Format("CPU Time: {0:0.00}ms GPU Time: {1:0.00}ms\n", cpuFrameTime, gpuFrameTime)
-                + $"Res: {actualWidth}x{actualHeight}@{Screen.currentResolution.refreshRateRatio}Hz API: {graphicsDeviceType}";
-            Debug.Log($"fps:{fps.ToString("0.0")},avgFps:{fpsTotal.ToString("0.0")},frames:{frameCountTotal},time:{dtTotal.ToString("0.0")},cpu:{cpuFrameTime.ToString("0.0")},gpu:{gpuFrameTime.ToString("0.0")},res:{actualWidth}x{actualHeight}@{Screen.currentResolution.refreshRateRatio}");
+                + $"Res: {actualWidth}x{actualHeight}@{Screen.currentResolution.refreshRateRatio}Hz API: {graphicsDeviceType}\n"
+                + $"Triangles: {trianglesRecorder.LastValue}";
+            Debug.Log($"fps:{fps.ToString("0.0")},avgFps:{fpsTotal.ToString("0.0")},frames:{frameCountTotal},time:{dtTotal.ToString("0.0")},cpu:{cpuFrameTime.ToString("0.0")},gpu:{gpuFrameTime.ToString("0.0")},res:{actualWidth}x{actualHeight}@{Screen.currentResolution.refreshRateRatio},tri:{trianglesRecorder.LastValue}");
             TextMeshProUGUI fpsText = GameObject.Find("FPSCounter").GetComponent<TextMeshProUGUI>();
             if (fpsText) {
                 fpsText.text = displayText;

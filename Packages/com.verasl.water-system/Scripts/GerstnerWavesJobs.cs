@@ -31,6 +31,11 @@ namespace WaterSystem
 
         public static void Init()
         {
+            if (Initialized) return;
+            _firstFrame = true;
+            _processing = false;
+            _positionCount = 0;
+            Registry.Clear();
             if(Debug.isDebugBuild)
                 Debug.Log("Initializing Gerstner Waves Jobs");
             //Wave data
@@ -50,6 +55,7 @@ namespace WaterSystem
 
         public static void Cleanup()
         {
+            if (!Initialized) return;
             if(Debug.isDebugBuild)
                 Debug.Log("Cleaning up Gerstner Wave Jobs");
             _waterHeightHandle.Complete();
@@ -59,6 +65,11 @@ namespace WaterSystem
             _positions.Dispose();
             _wavePos.Dispose();
             _waveNormal.Dispose();
+            Initialized = false;
+            _processing = false;
+            _firstFrame = true;
+            _positionCount = 0;
+            Registry.Clear();
         }
 
         public static void UpdateSamplePoints(ref NativeArray<float3> samplePoints, int guid)
@@ -91,7 +102,7 @@ namespace WaterSystem
         // Height jobs for the next frame
         public static void UpdateHeights()
         {
-            if (_processing) return;
+            if (!Initialized || _processing) return;
             
             _processing = true;
 

@@ -32,6 +32,7 @@ namespace WaterSystem
         [SerializeField] RenderTexture _depthTex;
         public Texture bakedDepthTex;
         private Camera _depthCam;
+        private bool _depthCapturePending;
         private Texture2D _rampTexture;
         [SerializeField]
         public Wave[] _waves;
@@ -102,6 +103,7 @@ namespace WaterSystem
             }
 
             waveBuffer?.Dispose();
+            waveBuffer = null;
         }
 
         private void BeginCameraRendering(ScriptableRenderContext src, Camera cam)
@@ -172,11 +174,19 @@ namespace WaterSystem
                 resources = Resources.Load("WaterResources") as WaterResources;
             }
             if(Application.platform != RuntimePlatform.WebGLPlayer) // TODO - bug with Opengl depth
-                CaptureDepthMap();
+                _depthCapturePending = true;
         }
 
         private void LateUpdate()
         {
+            // OnEnable also runs while Unity is restoring volume components during
+            // a domain reload. Wait until scene initialization has finished before
+            // requesting a camera render.
+            if (_depthCapturePending)
+            {
+                _depthCapturePending = false;
+                CaptureDepthMap();
+            }
             GerstnerWavesJobs.UpdateHeights();
         }
 
@@ -359,7 +369,7 @@ namespace WaterSystem
             t.position = Vector3.up * (transform.position.y + depthExtra);//center the camera on this water plane height
             t.up = Vector3.forward;//face the camera down
 
-            _depthCam.enabled = true;
+            _depthCam.enabled = false;
             _depthCam.orthographic = true;
             _depthCam.orthographicSize = 250;//hardcoded = 1k area - TODO
             _depthCam.nearClipPlane =0.01f;
@@ -378,7 +388,8 @@ namespace WaterSystem
             _depthTex.name = "WaterDepthMap";
             //do depth capture
             _depthCam.targetTexture = _depthTex;
-            _depthCam.Render();
+            RenderPipeline.SubmitRenderRequest(_depthCam,
+                new UniversalRenderPipeline.SingleCameraRequest { destination = _depthTex });
             Shader.SetGlobalTexture(WaterDepthMap, _depthTex);
             // set depth bufferParams for depth cam(since it doesnt exist and only temporary)
             var _params = new Vector4(t.position.y, 250, 0, 0);
