@@ -105,7 +105,7 @@ namespace BoatAttack
         {
             if (!RaceManager.RaceStarted)
             {
-                if(WaypointGroup.Instance) AlignBoatWithStartingLine();
+                if(WaypointGroup.Instance && _playerIndex != -1) AlignBoatWithStartingLine();
             }
         }
 

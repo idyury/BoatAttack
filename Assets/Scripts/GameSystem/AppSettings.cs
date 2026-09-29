@@ -60,7 +60,7 @@ namespace BoatAttack
         public GameObject consoleCanvas;
         public static GameObject ConsoleCanvas;
 
-        public static bool HQmode = true;
+        public static bool HQmode = false;
 
         private int lastWindowHeight = 0;
 
@@ -88,7 +88,7 @@ namespace BoatAttack
         Screen.SetResolution(1920, 1080, true);
 #elif UNITY_STANDALONE_WIN
             //Screen.SetResolution(1920, 1080, FullScreenMode.ExclusiveFullScreen);
-            Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
+            //Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
 #endif
         }
 
@@ -146,11 +146,11 @@ namespace BoatAttack
             }
 
             // Only recalculate if the player resizes the window
-            if (Screen.height != lastWindowHeight)
-            {
-                lastWindowHeight = Screen.height;
-                EnforceFixedResolution();
-            }
+            //if (Screen.height != lastWindowHeight)
+            //{
+            //    lastWindowHeight = Screen.height;
+            //    EnforceFixedResolution();
+            //}
         }
         private void EnforceFixedResolution()
         {
