@@ -138,10 +138,16 @@ namespace BoatAttack
         {
             RaceStarted = false;
             LevelLoaded = false;
-            RaceData.boats.Clear();
+            if (RaceData != null && RaceData != demoRaceData)
+            {
+                RaceData.boats.Clear();
+            }
             RaceTime = 0f;
             _boatTimes.Clear();
             raceStarted = null;
+            frameCount = 0;
+            frameCountTotal = 0;
+            lastUpdateTime = 0f;
         }
 
         public static void Setup(Scene scene, LoadSceneMode mode)
@@ -236,14 +242,15 @@ namespace BoatAttack
         /// <returns></returns>
         private static IEnumerator BeginRace()
         {
-            LevelLoaded = true;
-            LevelLoadedTime = Time.realtimeSinceStartup;
-            Debug.Log("Level loaded, timestamp: " + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            if (!LevelLoaded)
+            {
+                LevelLoaded = true;
+                LevelLoadedTime = Time.realtimeSinceStartup;
+                Debug.Log("Level loaded, timestamp: " + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            }
 
             var introCams = GameObject.FindWithTag("introCameras");
-            introCams.TryGetComponent<PlayableDirector>(out var introDirector);
-
-            if (introDirector)
+            if (introCams != null && introCams.TryGetComponent<PlayableDirector>(out var introDirector))
             {
                 while (introDirector.state == PlayState.Playing)
                 {
@@ -392,6 +399,53 @@ namespace BoatAttack
 
             Instance.Reset();
             AppSettings.LoadScene(0, LoadSceneMode.Single);
+        }
+
+        public static void RetryRace()
+        {
+            if (Instance == null || RaceData == null) return;
+
+            Debug.Log("Retrying Race");
+            Instance.StopAllCoroutines();
+            RaceStarted = false;
+            raceStarted?.Invoke(false);
+            RaceTime = 0f;
+            Instance._boatTimes.Clear();
+
+            for (var i = 0; i < RaceData.boats.Count; i++)
+            {
+                var boatController = RaceData.boats[i].Boat;
+                if (boatController != null)
+                {
+                    boatController.ResetForRetry(i + 1);
+                }
+                Instance._boatTimes[i] = 0f;
+            }
+
+            if (ReplayCamera.Instance != null)
+            {
+                ReplayCamera.Instance.DisableSpectatorMode();
+            }
+
+            switch (RaceData.game)
+            {
+                case GameType.Singleplayer:
+                    SetupCamera(0, false);
+                    var raceUi = RaceData.boats[0].Boat != null ? RaceData.boats[0].Boat.RaceUi : null;
+                    if (raceUi != null)
+                    {
+                        raceUi.ResetForRetry();
+                    }
+                    break;
+                case GameType.Spectator:
+                    if (ReplayCamera.Instance != null)
+                    {
+                        ReplayCamera.Instance.EnableSpectatorMode();
+                    }
+                    break;
+            }
+
+            Instance.StartCoroutine(BeginRace());
         }
         
         public static void SetHull(int player, int hull) => RaceData.boats[player].boatPrefab = Instance.boats[hull];

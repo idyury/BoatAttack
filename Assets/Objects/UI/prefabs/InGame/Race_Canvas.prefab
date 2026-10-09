@@ -2656,6 +2656,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: BaseButton_Rematch
       objectReference: {fileID: 0}
+    - target: {fileID: 5980759051687504018, guid: dbcc8ad9df6a14eb89c6443a6667122e,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 4682807467005571516}
     - target: {fileID: 6200252423622398695, guid: dbcc8ad9df6a14eb89c6443a6667122e,
         type: 3}
       propertyPath: m_textInfo.characterCount

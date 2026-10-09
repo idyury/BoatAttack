@@ -95,6 +95,19 @@ namespace BoatAttack
             transform.localEulerAngles = new Vector3(0f, _currentAngle, 0f);
         }
 
+        public void ResetEngine()
+        {
+            VelocityMag = 0f;
+            _turnVel = 0f;
+            _currentAngle = 0f;
+            transform.localEulerAngles = Vector3.zero;
+            if (RB != null)
+            {
+                RB.linearVelocity = Vector3.zero;
+                RB.angularVelocity = Vector3.zero;
+            }
+        }
+
         // Draw some helper gizmos
         private void OnDrawGizmosSelected()
         {

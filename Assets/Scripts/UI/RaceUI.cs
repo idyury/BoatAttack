@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace BoatAttack.UI
 {
@@ -42,6 +43,11 @@ namespace BoatAttack.UI
             RaceManager.raceStarted += SetGameplayUi;
         }
 
+        private void OnDisable()
+        {
+            RaceManager.raceStarted -= SetGameplayUi;
+        }
+
         public void Setup(int player)
         {
             _playerIndex = player;
@@ -49,6 +55,30 @@ namespace BoatAttack.UI
             _totalLaps = RaceManager.GetLapCount();
             _totalPlayers = RaceManager.RaceData.boats.Count;
             _timeOffset = Time.time;
+
+            if (matchEnd != null)
+            {
+                var rematchTransform = matchEnd.transform.Find("BaseButton_Rematch");
+                if (rematchTransform != null && rematchTransform.TryGetComponent<Button>(out var retryButton))
+                {
+                    var hasPersistentRetry = false;
+                    for (var i = 0; i < retryButton.onClick.GetPersistentEventCount(); i++)
+                    {
+                        if (retryButton.onClick.GetPersistentTarget(i) != null &&
+                            retryButton.onClick.GetPersistentMethodName(i) == nameof(RetryMatch))
+                        {
+                            hasPersistentRetry = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasPersistentRetry)
+                    {
+                        retryButton.onClick.RemoveListener(RetryMatch);
+                        retryButton.onClick.AddListener(RetryMatch);
+                    }
+                }
+            }
 
             switch (AppSettings.Instance.speedFormat)
             {
@@ -74,11 +104,12 @@ namespace BoatAttack.UI
 
         public void SetGameplayUi(bool enable)
         {
-            if (enable)
+            if (enable && _raceStats != null)
             {
                 foreach (var stat in _raceStats)
                 {
-                    stat.UpdateStats();
+                    if (stat != null)
+                        stat.UpdateStats();
                 }
             }
             gameplayUi.SetActive(enable);
@@ -93,6 +124,30 @@ namespace BoatAttack.UI
         {
             matchEnd.SetActive(true);
             SetGameStats(true);
+            SetGameplayUi(false);
+        }
+
+        public void ResetForRetry()
+        {
+            _timeOffset = Time.time;
+            _smoothedSpeed = 0f;
+            _smoothSpeedVel = 0f;
+            if (speedText != null)
+                speedText.text = "000";
+            UpdateLapCounter(1);
+            UpdatePlaceCounter(0);
+
+            if (_raceStats != null)
+            {
+                foreach (var stat in _raceStats)
+                {
+                    if (stat != null)
+                        stat.ResetStats();
+                }
+            }
+
+            matchEnd.SetActive(false);
+            SetGameStats(false);
             SetGameplayUi(false);
         }
 
@@ -167,6 +222,11 @@ namespace BoatAttack.UI
         public void FinishMatch()
         {
             RaceManager.UnloadRace();
+        }
+
+        public void RetryMatch()
+        {
+            RaceManager.RetryRace();
         }
 
         public void LateUpdate()

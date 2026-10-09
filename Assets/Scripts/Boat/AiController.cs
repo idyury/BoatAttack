@@ -33,6 +33,20 @@ namespace BoatAttack
 
         private void StartRace(bool start)
         {
+            CancelInvoke(nameof(CalculatePath));
+            if (!start)
+            {
+                _pathPoint = null;
+                _foundPath = false;
+                _curPoint = 0;
+                CurWp = 0;
+                _idleTime = 0f;
+                return;
+            }
+
+            CurWp = 0;
+            _curPoint = 0;
+            _idleTime = 0f;
             AssignWp(WaypointGroup.Instance.GetWaypoint(0));
             InvokeRepeating(nameof(CalculatePath), 1f, 1f);
         }
@@ -40,11 +54,14 @@ namespace BoatAttack
         private void OnDisable()
         {
             StopAllCoroutines();
+            CancelInvoke(nameof(CalculatePath));
             RaceManager.raceStarted -= StartRace;
         }
 
         private void LateUpdate()
         {
+            if (!RaceManager.RaceStarted) return;
+
             if(NavPath?.status == NavMeshPathStatus.PathInvalid)
                 CalculatePath();
 
@@ -74,7 +91,7 @@ namespace BoatAttack
         // Update is called once per frame
         private void FixedUpdate ()
         {
-            if (_pathPoint == null || _pathPoint.Length <= _curPoint) return;
+            if (!RaceManager.RaceStarted || _pathPoint == null || _pathPoint.Length <= _curPoint) return;
             //\\\\\\\\Get angle to the destination and the side
             var normDir = _pathPoint[_curPoint] - transform.position;
             normDir = normDir.normalized;

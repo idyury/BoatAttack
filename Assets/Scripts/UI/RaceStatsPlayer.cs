@@ -25,6 +25,25 @@ namespace BoatAttack.UI
             boatType.text = "TODO"; // TODO - need to implement
         }
 
+        private void OnEnable()
+        {
+            if (_boat != null)
+            {
+                _update = !_boat.MatchComplete;
+                UpdateStats();
+            }
+        }
+
+        public void ResetStats()
+        {
+            _place = -1;
+            _update = true;
+            if (_boat != null)
+            {
+                UpdateStats();
+            }
+        }
+
         private void Update()
         {
             if (!_update) return;
@@ -45,7 +64,7 @@ namespace BoatAttack.UI
             var bestLapTime = RaceUI.BestLapFromSplitTimes(_boat.SplitTimes);
             bestLap.text = bestLapTime > 0 ? RaceUI.FormatRaceTime(bestLapTime) : "N/A";
 
-            var totalTime = _boat.MatchComplete ? _boat.SplitTimes.Last() : RaceManager.RaceTime;
+            var totalTime = (_boat.MatchComplete && _boat.SplitTimes.Count > 0) ? _boat.SplitTimes.Last() : RaceManager.RaceTime;
             time.text = RaceUI.FormatRaceTime(totalTime);
         }
     }

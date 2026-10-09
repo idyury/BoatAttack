@@ -54,7 +54,13 @@ namespace BoatAttack
 
         public void DisableSpectatorMode()
         {
-            //droneCamera.Priority = -100;
+            _spectatorEnabled = false;
+            RaceDone = false;
+            _focusedBoat = null;
+            if (clearShot)
+            {
+                clearShot.Priority = 0;
+            }
         }
 
         void SetRandomTarget() => SetTarget(Random.Range(0, RaceManager.RaceData.boatCount));

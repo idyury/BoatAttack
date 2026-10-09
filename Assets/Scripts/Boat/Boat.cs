@@ -152,7 +152,7 @@ namespace BoatAttack
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.CompareTag("waypoint") || MatchComplete) return;
+            if (!RaceManager.RaceStarted || !other.CompareTag("waypoint") || MatchComplete) return;
 
             var wp = WaypointGroup.Instance.GetTriggersWaypoint(other as BoxCollider);
             var wpIndex = WaypointGroup.Instance.GetWaypointIndex(wp);
@@ -223,7 +223,45 @@ namespace BoatAttack
                 engine.RB.angularVelocity = Vector3.zero;
                 engine.RB.position = resetPoint;
                 engine.RB.rotation = resetMatrix.rotation;
+                GetComponentInChildren<WakeGenerator>()?.ClearWakes();
             }
+        }
+
+        public void ResetForRetry(int player = 1)
+        {
+            _playerIndex = player - 1;
+            Place = player;
+            LapPercentage = 0f;
+            LapCount = 0;
+            MatchComplete = false;
+            _wpCount = -1;
+            _lastCheckpoint = null;
+            _nextCheckpoint = null;
+            SplitTimes.Clear();
+            _camFovVel = 0f;
+            if (cam)
+            {
+                cam.m_Lens.FieldOfView = 80f;
+            }
+
+            if (WaypointGroup.Instance && _playerIndex >= 0 && _playerIndex < WaypointGroup.Instance.StartingPositions.Length)
+            {
+                var startingPosition = WaypointGroup.Instance.StartingPositions[_playerIndex];
+                Vector3 targetPosition = startingPosition.GetColumn(3);
+                Quaternion targetRotation = Quaternion.LookRotation(startingPosition.GetColumn(2));
+                transform.SetPositionAndRotation(targetPosition, targetRotation);
+                if (engine != null)
+                {
+                    engine.ResetEngine();
+                    if (engine.RB != null)
+                    {
+                        engine.RB.position = targetPosition;
+                        engine.RB.rotation = targetRotation;
+                    }
+                }
+            }
+
+            GetComponentInChildren<WakeGenerator>()?.ClearWakes();
         }
 
         BoatLivery RandomLivery()

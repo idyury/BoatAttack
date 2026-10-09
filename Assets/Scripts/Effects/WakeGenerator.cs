@@ -54,6 +54,20 @@ namespace BoatAttack
             _lrs.Clear();
         }
 
+        public void ClearWakes()
+        {
+            foreach (var wake in wakes)
+            {
+                if (wake == null) continue;
+                foreach (var wl in wake.lines)
+                {
+                    wl.points.Clear();
+                    if (wl.lineRenderer != null)
+                        wl.lineRenderer.positionCount = 0;
+                }
+            }
+        }
+
         private void Update()
         {
             //For each wake pair
