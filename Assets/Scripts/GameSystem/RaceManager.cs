@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -273,6 +273,11 @@ namespace BoatAttack
         private static void EndRace()
         {
             RaceStarted = false;
+            if (AppSettings.AutoReplay)
+            {
+                RetryRace();
+                return;
+            }
             switch (RaceData.game)
             {
                 case GameType.Spectator:
@@ -368,7 +373,10 @@ namespace BoatAttack
                 }
             }
             if(RaceStarted && finished == 0)
+            {
                 EndRace();
+                return;
+            }
 
             var mySortedList = _boatTimes.OrderBy(d => d.Value).ToList();
             var place = RaceData.boatCount;

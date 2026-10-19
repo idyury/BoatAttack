@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using GameplayIngredients;
 using UnityEngine;
@@ -61,6 +61,7 @@ namespace BoatAttack
         public static GameObject ConsoleCanvas;
 
         public static bool HQmode = false;
+        public static bool AutoReplay = false;
 
         private int lastWindowHeight = 0;
 
@@ -285,6 +286,10 @@ namespace BoatAttack
                         break;
                     case "-benchmarkFlythrough":
                         LoadScene("benchmark_island-flythrough");
+                        break;
+                    case "-autoreplay":
+                    case "--autoreplay":
+                        AutoReplay = arg.Length < 2 || (!arg[1].Equals("false", StringComparison.OrdinalIgnoreCase) && !arg[1].Equals("0"));
                         break;
                 }
             }
